@@ -1,4 +1,4 @@
-# Forced Player Count
+# Force Player Count
 
 Overrides the game's player count with a fixed value.
 
