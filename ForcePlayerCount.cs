@@ -30,21 +30,21 @@ namespace ForcePlayerCount
             Instance = this;
 
             var defaultValue = 4;
-            PlayerCount = Config.Bind("Gameplay Tweaks", "ForcedPlayerCount", defaultValue, "Overrides the game's player count with a fixed value.");
+            PlayerCount = Config.Bind("Gameplay Tweaks", "PlayerCount", defaultValue, "Overrides the game's player count with a fixed value.");
+            PlayerCount.SettingChanged += PlayerCountOnSettingChanged;
 
             var allFlags = (BindingFlags)(-1);
             var hookConfig = new HookConfig { ManualApply = true };
             _hook = new Hook(
                 typeof(Run).GetProperty(nameof(Run.participatingPlayerCount), allFlags).GetGetMethod(true),
-                Hook_Run_participatingPlayerCount,
+                OverrideParticipatingPlayerCount,
                 hookConfig);
             ModSettingsManager.AddOption(new IntFieldOption(PlayerCount));
         }
 
-        private static int Hook_Run_participatingPlayerCount(Func<Run, int> orig, Run self)
-        {
-            return Instance.PlayerCount.Value;
-        }
+        private void PlayerCountOnSettingChanged(object sender, EventArgs e) => LogPlayerCount();
+
+        private static int OverrideParticipatingPlayerCount(Func<Run, int> orig, Run self) => Instance.PlayerCount.Value;
 
         public void OnEnable()
         {
@@ -54,6 +54,11 @@ namespace ForcePlayerCount
         public void OnDisable()
         {
             _hook?.Undo();
+        }
+
+        private static void LogPlayerCount()
+        {
+            Log.Info("New PlayerCount: " + Instance.PlayerCount.Value);
         }
     }
 }

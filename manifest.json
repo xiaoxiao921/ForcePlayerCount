@@ -1,0 +1,9 @@
+﻿﻿{
+	"name": "ForcePlayerCount",
+	"version_number": "1.0.0",
+	"website_url": "https://github.com/xiaoxiao921/ForcePlayerCount",
+	"description": "Overrides the game's player count with a fixed value.",
+	"dependencies": [
+		"bbepis-BepInExPack-5.4.2120",
+	]
+}
