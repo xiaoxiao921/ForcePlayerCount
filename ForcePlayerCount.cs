@@ -22,6 +22,7 @@ namespace ForcePlayerCount
         public ConfigEntry<int> PlayerCount { get; private set; }
 
         private Hook _hook;
+        private Hook _hook2;
 
         public void Awake()
         {
@@ -32,6 +33,7 @@ namespace ForcePlayerCount
             var defaultValue = 4;
             PlayerCount = Config.Bind("Gameplay Tweaks", "PlayerCount", defaultValue, "Overrides the game's player count with a fixed value.");
             PlayerCount.SettingChanged += PlayerCountOnSettingChanged;
+            ModSettingsManager.AddOption(new IntFieldOption(PlayerCount));
 
             var allFlags = (BindingFlags)(-1);
             var hookConfig = new HookConfig { ManualApply = true };
@@ -39,21 +41,41 @@ namespace ForcePlayerCount
                 typeof(Run).GetProperty(nameof(Run.participatingPlayerCount), allFlags).GetGetMethod(true),
                 OverrideParticipatingPlayerCount,
                 hookConfig);
-            ModSettingsManager.AddOption(new IntFieldOption(PlayerCount));
+            _hook2 = new Hook(
+                typeof(Run).GetProperty(nameof(Run.livingPlayerCount), allFlags).GetGetMethod(true),
+                OverrideLivingPlayerCount,
+                hookConfig);
         }
 
         private void PlayerCountOnSettingChanged(object sender, EventArgs e) => LogPlayerCount();
 
-        private static int OverrideParticipatingPlayerCount(Func<Run, int> orig, Run self) => Instance.PlayerCount.Value;
+        private static int OverrideParticipatingPlayerCount(Func<Run, int> orig, Run self)
+        {
+            return Instance.PlayerCount.Value;
+        }
+
+        private static int OverrideLivingPlayerCount(Func<Run, int> orig, Run self)
+        {
+            var originalCount = orig(self);
+            var myCount = Instance.PlayerCount.Value;
+            if (originalCount > 0 && myCount > 0 && myCount < originalCount)
+            {
+                return myCount;
+            }
+
+            return originalCount;
+        }
 
         public void OnEnable()
         {
             _hook?.Apply();
+            _hook2?.Apply();
         }
 
         public void OnDisable()
         {
             _hook?.Undo();
+            _hook2?.Undo();
         }
 
         private static void LogPlayerCount()
