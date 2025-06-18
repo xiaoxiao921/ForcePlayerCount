@@ -5,5 +5,6 @@
 	"description": "Overrides the game's player count with a fixed value.",
 	"dependencies": [
 		"bbepis-BepInExPack-5.4.2120",
+		"Rune580-Risk_Of_Options-2.8.4"
 	]
 }
